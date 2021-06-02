@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
 from flask import Blueprint, render_template, abort, request
+import json
+
 from models import User
 from crypt import bcrypt
 import db
-import json
+
 
 wrap = Blueprint('wrap', __name__)
 
@@ -18,11 +20,11 @@ def signup():
     password = data.get('password')
 
     if not login or not password:
-        abort(401)
+        abort(401, 'введите логин и пароль')
     user = db.session.query(User).filter_by(login=login).first()
 
     if user:
-        abort(403) 
+        abort(401, 'пользователя не существует') 
     
     new_user = User(user_id, first_name, last_name, email,login, password)
     db.session.add(new_user)
@@ -41,15 +43,15 @@ def login():
     password = data.get('password')
 
     if not login or not password:
-        abort(401)
+        abort(401, 'введите логин и пароль')
     user = db.session.query(User).filter_by(login=login).first()
 
     if not user:
-        abort(401)
+        abort(401, 'пользователя не существует')
 
     check_password = bcrypt.check_password_hash(user.password, password)
 
     if not check_password:
-        abort(401)
+        abort(401, 'неверный пароль')
     
     return {'messeg': 'ok'}
